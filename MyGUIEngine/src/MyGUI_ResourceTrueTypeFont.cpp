@@ -79,7 +79,7 @@ namespace MyGUI
 	{
 	}
 
-	void ResourceTrueTypeFont::setResolution(uint _value)
+	void ResourceTrueTypeFont::setResolution(unsigned int _value)
 	{
 	}
 
@@ -213,7 +213,7 @@ namespace MyGUI
 		struct Pixel<LAMode, false, Antialias> : PixelBase<LAMode>
 		{
 			// Sets the destination pixel using the specified luminance and alpha. Source is ignored, since FromSource is false.
-			static void set(uint8*& _dest, uint8 _luminance, uint8 _alpha, uint8* = nullptr)
+			static void set(uint8*& _dest, uint8 _luminance, uint8 _alpha, uint8* /*_source*/ = nullptr)
 			{
 				PixelBase<LAMode>::set(_dest, _luminance, _alpha);
 			}
@@ -223,7 +223,7 @@ namespace MyGUI
 		struct Pixel<LAMode, true, false> : PixelBase<LAMode>
 		{
 			// Sets the destination pixel using the specified _luminance and using the alpha from the specified source.
-			static void set(uint8*& _dest, uint8 _luminance, uint8, uint8*& _source)
+			static void set(uint8*& _dest, uint8 _luminance, uint8 /*_alpha*/, uint8*& _source)
 			{
 				PixelBase<LAMode>::set(_dest, _luminance, *_source++);
 			}
@@ -233,7 +233,7 @@ namespace MyGUI
 		struct Pixel<LAMode, true, true> : PixelBase<LAMode>
 		{
 			// Sets the destination pixel using both the luminance and alpha from the specified source, since Antialias is true.
-			static void set(uint8*& _dest, uint8, uint8, uint8*& _source)
+			static void set(uint8*& _dest, uint8 /*_luminance*/, uint8 /*_alpha*/, uint8*& _source)
 			{
 				PixelBase<LAMode>::set(_dest, *_source, *_source);
 				++_source;
@@ -553,8 +553,7 @@ namespace MyGUI
 			// discrepancies between the glyph metrics and the actual rendered bitmap metrics.
 			ftLoadFlags = FT_LOAD_NO_HINTING | FT_LOAD_RENDER;
 			break;
-		//case HintingUseNative:
-		default:
+		case HintingUseNative:
 			ftLoadFlags = FT_LOAD_DEFAULT;
 			break;
 		}
@@ -594,7 +593,7 @@ namespace MyGUI
 			// Adjust the width of the "Space" glyph if it has been customized.
 			if (mSpaceWidth != 0.0f)
 			{
-				texWidth += (int)ceil(mSpaceWidth) - (int)ceil(spaceGlyphInfo->width);
+				texWidth += (int)std::ceil(mSpaceWidth) - (int)std::ceil(spaceGlyphInfo->width);
 				spaceGlyphInfo->width = mSpaceWidth;
 				spaceGlyphInfo->advance = mSpaceWidth;
 			}
@@ -674,8 +673,8 @@ namespace MyGUI
 				{
 					GlyphInfo& info = *i->second;
 
-					int glyphWidth = (int)ceil(info.width);
-					int glyphHeight = (int)ceil(info.height);
+					int glyphWidth = (int)std::ceil(info.width);
+					int glyphHeight = (int)std::ceil(info.height);
 
 					autoWrapGlyphPos(glyphWidth, texWidth, glyphHeight, texX, texY);
 
@@ -860,13 +859,13 @@ namespace MyGUI
 			std::max((float)_glyph->bitmap.rows, _glyph->metrics.height / 64.0f),
 			(_glyph->advance.x / 64.0f) - bearingX,
 			bearingX,
-			floor(_fontAscent - (_glyph->metrics.horiBearingY / 64.0f) - mOffsetHeight));
+			std::floor(_fontAscent - (_glyph->metrics.horiBearingY / 64.0f) - mOffsetHeight));
 	}
 
 	int ResourceTrueTypeFont::createGlyph(FT_UInt _glyphIndex, const GlyphInfo& _glyphInfo, GlyphHeightMap& _glyphHeightMap)
 	{
-		int width = (int)ceil(_glyphInfo.width);
-		int height = (int)ceil(_glyphInfo.height);
+		int width = (int)std::ceil(_glyphInfo.width);
+		int height = (int)std::ceil(_glyphInfo.height);
 
 		mCharMap[_glyphInfo.codePoint] = _glyphIndex;
 		GlyphInfo& info = mGlyphMap.insert(GlyphMap::value_type(_glyphInfo.codePoint, _glyphInfo)).first->second;
@@ -971,8 +970,8 @@ namespace MyGUI
 	template<bool LAMode, bool UseBuffer, bool Antialias>
 	void ResourceTrueTypeFont::renderGlyph(GlyphInfo& _info, uint8 _luminance0, uint8 _luminance1, uint8 _alpha, int _lineHeight, uint8* _texBuffer, int _texWidth, int _texHeight, int& _texX, int& _texY, uint8* _glyphBuffer)
 	{
-		int width = (int)ceil(_info.width);
-		int height = (int)ceil(_info.height);
+		int width = (int)std::ceil(_info.width);
+		int height = (int)std::ceil(_info.height);
 
 		autoWrapGlyphPos(width, _texWidth, _lineHeight, _texX, _texY);
 
@@ -1016,7 +1015,7 @@ namespace MyGUI
 		mSize = _value;
 	}
 
-	void ResourceTrueTypeFont::setResolution(uint _value)
+	void ResourceTrueTypeFont::setResolution(unsigned int _value)
 	{
 		mResolution = _value;
 	}

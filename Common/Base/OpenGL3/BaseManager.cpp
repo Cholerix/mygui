@@ -5,6 +5,7 @@
 #include <SDL_image.h>
 #include "GL/glew.h"
 
+
 namespace base
 {
 	BaseManager::BaseManager() :
@@ -19,14 +20,9 @@ namespace base
 	{
 	}
 
-	BaseManager::~BaseManager()
-	{
-	}
-
 	void BaseManager::_windowResized( int w, int h )
 	{
-		if (mPlatform)
-			mPlatform->getRenderManagerPtr()->setViewSize(w, h);
+		MyGUI::RenderManager::getInstance().setViewSize(w, h);
 
 		setInputViewSize(w, h);
 	}
@@ -139,6 +135,7 @@ namespace base
 					case SDL_WINDOWEVENT_MINIMIZED:
 					case SDL_WINDOWEVENT_HIDDEN:
 						mWindowOn = false;
+						break;
 					default:
 						break;
 					}
@@ -191,8 +188,8 @@ namespace base
 			{
 				if (node->findAttribute("root") != "")
 				{
-					bool root = MyGUI::utility::parseBool(node->findAttribute("root"));
-					if (root)
+					bool rootAttribute = MyGUI::utility::parseBool(node->findAttribute("root"));
+					if (rootAttribute)
 						mRootMedia = node->getContent();
 				}
 				addResourceLocation(node->getContent(), false);
@@ -376,7 +373,6 @@ namespace base
 		SDL_LockSurface(_image);
 
 		int pitchSrc = _image->pitch;	//the length of a row of pixels in bytes
-		int bppSrc = pitchSrc / _image->w;
 		size_t size = _image->h * pitchSrc;
 		ret = new unsigned char[size];
 		unsigned char* ptr_source = (unsigned char*)_image->pixels;

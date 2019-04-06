@@ -45,10 +45,6 @@ namespace MyGUI
 	{
 	}
 
-	Widget::~Widget()
-	{
-	}
-
 	void Widget::_initialise(WidgetStyle _style, const IntCoord& _coord, const std::string& _skinName, Widget* _parent, ICroppedRectangle* _croppedParent, const std::string& _name)
 	{
 		ResourceSkin* skinInfo = nullptr;
@@ -1208,7 +1204,7 @@ namespace MyGUI
 
 		else
 		{
-			MYGUI_LOG(Warning, "Widget property '" << _key << "' not found" << " [" << LayoutManager::getInstance().getCurrentLayout() << "]");
+			MYGUI_LOG(Warning, "Widget '" << getName() << "|" << getTypeName() << "' have unknown property '" << _key << "' " << " [" << LayoutManager::getInstance().getCurrentLayout() << "]");
 			return;
 		}
 

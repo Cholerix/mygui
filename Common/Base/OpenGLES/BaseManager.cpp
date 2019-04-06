@@ -18,14 +18,9 @@ namespace base
 	{
 	}
 
-	BaseManager::~BaseManager()
-	{
-	}
-
 	void BaseManager::_windowResized( int w, int h )
 	{
-		if (mPlatform)
-			mPlatform->getRenderManagerPtr()->setViewSize(w, h);
+		MyGUI::RenderManager::getInstance().setViewSize(w, h);
 
 		setInputViewSize(w, h);
 	}
@@ -215,8 +210,8 @@ namespace base
 			{
 				if (node->findAttribute("root") != "")
 				{
-					bool root = MyGUI::utility::parseBool(node->findAttribute("root"));
-					if (root)
+					bool rootAttribute = MyGUI::utility::parseBool(node->findAttribute("root"));
+					if (rootAttribute)
 						mRootMedia = node->getContent();
 				}
 				addResourceLocation(node->getContent(), false);

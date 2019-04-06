@@ -16,9 +16,7 @@
 #	include FT_FREETYPE_H
 #endif // MYGUI_USE_FREETYPE
 
-#ifndef MYGUI_NO_CXX11
-#	include <unordered_map>
-#endif
+#include <unordered_map>
 
 namespace MyGUI
 {
@@ -31,21 +29,21 @@ namespace MyGUI
 
 	public:
 		ResourceTrueTypeFont();
-		virtual ~ResourceTrueTypeFont();
+		~ResourceTrueTypeFont() override;
 
-		virtual void deserialization(xml::ElementPtr _node, Version _version);
+		void deserialization(xml::ElementPtr _node, Version _version) override;
 
 		// Returns the glyph info for the specified code point, or the glyph info for a substitute glyph if the code point does not
 		// exist in this font. Returns nullptr if there is a problem with the font.
-		virtual GlyphInfo* getGlyphInfo(Char _id);
+		GlyphInfo* getGlyphInfo(Char _id) override;
 
-		virtual ITexture* getTextureFont();
+		ITexture* getTextureFont() override;
 
 		// получившаяся высота при генерации в пикселях
-		virtual int getDefaultHeight();
+		int getDefaultHeight() override;
 
 		// update texture after render device lost event
-		virtual void textureInvalidate(ITexture* _texture);
+		void textureInvalidate(ITexture* _texture) override;
 
 		// Returns a collection of code-point ranges that are supported by this font. Each range is specified as [first, second];
 		// for example, a range containing a single code point will have the same value for both first and second.
@@ -60,7 +58,7 @@ namespace MyGUI
 
 		void setSource(const std::string& _value);
 		void setSize(float _value);
-		void setResolution(uint _value);
+		void setResolution(unsigned int _value);
 		void setHinting(const std::string& _value);
 		void setAntialias(bool _value);
 		void setTabWidth(float _value);
@@ -89,7 +87,7 @@ namespace MyGUI
 		// The following variables are set directly from values specified by the user.
 		std::string mSource; // Source (filename) of the font.
 		float mSize; // Size of the font, in points (there are 72 points per inch).
-		uint mResolution; // Resolution of the font, in pixels per inch.
+		unsigned int mResolution; // Resolution of the font, in pixels per inch.
 		Hinting mHinting; // What type of hinting to use when rendering the font.
 		bool mAntialias; // Whether or not to anti-alias the font by copying its alpha channel to its luminance channel.
 		float mSpaceWidth; // The width of a "Space" character, in pixels. If zero, the default width is used.
@@ -114,11 +112,7 @@ namespace MyGUI
 		typedef std::map<Char, FT_UInt> CharMap;
 
 		// A map of glyph indices to glyph info objects.
-#ifdef MYGUI_NO_CXX11
-		typedef std::map<Char, GlyphInfo> GlyphMap;
-#else
 		typedef std::unordered_map<Char, GlyphInfo> GlyphMap;
-#endif
 
 		// A map of glyph heights to the set of paired glyph indices and glyph info objects that are of that height.
 		typedef std::map<FT_Pos, std::map<FT_UInt, GlyphInfo*> > GlyphHeightMap;

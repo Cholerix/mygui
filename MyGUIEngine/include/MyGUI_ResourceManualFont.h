@@ -11,9 +11,7 @@
 #include "MyGUI_ITexture.h"
 #include "MyGUI_IFont.h"
 
-#ifndef MYGUI_NO_CXX11
-#	include <unordered_map>
-#endif
+#include <unordered_map>
 
 namespace MyGUI
 {
@@ -25,18 +23,17 @@ namespace MyGUI
 
 	public:
 		ResourceManualFont();
-		virtual ~ResourceManualFont();
 
-		virtual void deserialization(xml::ElementPtr _node, Version _version);
+		void deserialization(xml::ElementPtr _node, Version _version) override;
 
 		// Returns the glyph info for the specified code point, or the glyph info for a substitute glyph if the code point does not
 		// exist in this font. Returns nullptr if the code point does not exist and there is no substitute glyph available.
-		virtual GlyphInfo* getGlyphInfo(Char _id);
+		GlyphInfo* getGlyphInfo(Char _id) override;
 
-		virtual ITexture* getTextureFont();
+		ITexture* getTextureFont() override;
 
 		// дефолтная высота, указанная в настройках шрифта
-		virtual int getDefaultHeight();
+		int getDefaultHeight() override;
 
 		// Manual loading methods, not needed when loading from XML
 		// Set the source texture by name
@@ -54,11 +51,7 @@ namespace MyGUI
 		void loadTexture();
 
 		// A map of code points to glyph info objects.
-#ifdef MYGUI_NO_CXX11
-		typedef std::map<Char, GlyphInfo> CharMap;
-#else
 		typedef std::unordered_map<Char, GlyphInfo> CharMap;
-#endif
 
 		// The following variables are set directly from values specified by the user.
 		std::string mSource; // Source (filename) of the font.

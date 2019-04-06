@@ -33,10 +33,6 @@ namespace MyGUI
 	{
 	}
 
-	DynLib::~DynLib()
-	{
-	}
-
 	bool DynLib::load()
 	{
 #ifdef MYGUI_DISABLE_PLUGINS
@@ -65,7 +61,7 @@ namespace MyGUI
 
 #endif
 
-		return mInstance != 0;
+		return mInstance != nullptr;
 	}
 
 	void DynLib::unload()
@@ -86,7 +82,7 @@ namespace MyGUI
 #endif
 	}
 
-	void* DynLib::getSymbol( const std::string& strName ) const throw()
+	void* DynLib::getSymbol( const std::string& strName ) const noexcept
 	{
 #ifdef MYGUI_DISABLE_PLUGINS
 		MYGUI_EXCEPT("Plugins support disabled, rebuild MyGUI without MYGUI_DISABLE_PLUGINS");
@@ -111,12 +107,12 @@ namespace MyGUI
 			FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
+			nullptr,
 			GetLastError(),
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			(LPTSTR) &lpMsgBuf,
 			0,
-			NULL);
+			nullptr);
 		std::string ret = (char*)lpMsgBuf;
 		// Free the buffer.
 		LocalFree( lpMsgBuf );

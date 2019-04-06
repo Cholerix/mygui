@@ -63,10 +63,6 @@ namespace base
 		#endif
 	}
 
-	BaseManager::~BaseManager()
-	{
-	}
-
 	bool BaseManager::create(int _width, int _height)
 	{
 		Ogre::String pluginsPath;
@@ -90,8 +86,15 @@ namespace base
 			#endif
 		}
 
+		#if (OGRE_VERSION >= ((1 << 16) | (11 << 8) | 0)) && MYGUI_PLATFORM == MYGUI_PLATFORM_WIN32
+		Ogre::NameValuePairList miscParams;
+		mWindow = mRoot->initialise(false);
+		miscParams["windowProc"] = Ogre::StringConverter::toString((size_t)Ogre::WindowEventUtilities::_WndProc);
+		mWindow = Ogre::Root::getSingleton().createRenderWindow("MyGUI Demo", 800, 600, false, &miscParams);
+		Ogre::WindowEventUtilities::_addRenderWindow(mWindow);
+		#else
 		mWindow = mRoot->initialise(true);
-
+		#endif
 
 		// вытаскиваем дискриптор окна
 		size_t handle = getWindowHandle();
@@ -320,8 +323,8 @@ namespace base
 			{
 				if (node->findAttribute("root") != "")
 				{
-					bool rootAttr = MyGUI::utility::parseBool(node->findAttribute("root"));
-					if (rootAttr)
+					bool rootAttribute = MyGUI::utility::parseBool(node->findAttribute("root"));
+					if (rootAttribute)
 						mRootMedia = node->getContent();
 				}
 				addResourceLocation(node->getContent());
@@ -353,6 +356,8 @@ namespace base
 	{
 		int width = (int)_rw->getWidth();
 		int height = (int)_rw->getHeight();
+
+		MyGUI::RenderManager::getInstance().setViewSize(width, height);
 
 		// при удалении окна может вызываться этот метод
 		if (mCamera)

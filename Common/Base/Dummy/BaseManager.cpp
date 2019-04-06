@@ -68,10 +68,6 @@ namespace base
 	{
 	}
 
-	BaseManager::~BaseManager()
-	{
-	}
-
 	void BaseManager::_windowResized()
 	{
 		RECT rect = { 0, 0, 0, 0 };
@@ -79,8 +75,7 @@ namespace base
 		int width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
 
-		if (mPlatform)
-			mPlatform->getRenderManagerPtr()->setViewSize(width, height);
+		MyGUI::RenderManager::getInstance().setViewSize(width, height);
 
 		setInputViewSize(width, height);
 	}
@@ -93,14 +88,14 @@ namespace base
 		// регистрируем класс окна
 		WNDCLASS wc =
 		{
-			0, (WNDPROC)DXWndProc, 0, 0, GetModuleHandle(NULL), LoadIcon(NULL, MAKEINTRESOURCE(1001)),
-			LoadCursor(NULL, IDC_ARROW), (HBRUSH)GetStockObject(BLACK_BRUSH), NULL, TEXT(WND_CLASS_NAME),
+			0, (WNDPROC)DXWndProc, 0, 0, GetModuleHandle(nullptr), LoadIcon(nullptr, MAKEINTRESOURCE(1001)),
+			LoadCursor(nullptr, IDC_ARROW), (HBRUSH)GetStockObject(BLACK_BRUSH), nullptr, TEXT(WND_CLASS_NAME),
 		};
 		RegisterClass(&wc);
 
 		// создаем главное окно
 		hWnd = CreateWindow(wc.lpszClassName, TEXT("Dummy Render Window"), WS_OVERLAPPED | WS_SYSMENU,
-			(GetSystemMetrics(SM_CXSCREEN) - width) / 2, (GetSystemMetrics(SM_CYSCREEN) - height) / 2, width, height, GetDesktopWindow(), NULL, wc.hInstance, this);
+			(GetSystemMetrics(SM_CXSCREEN) - width) / 2, (GetSystemMetrics(SM_CYSCREEN) - height) / 2, width, height, GetDesktopWindow(), nullptr, wc.hInstance, this);
 		if (!hWnd)
 		{
 			return false;
@@ -140,7 +135,7 @@ namespace base
 		MSG msg;
 		while (true)
 		{
-			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);

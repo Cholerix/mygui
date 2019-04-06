@@ -114,20 +114,40 @@ namespace MyGUI
 
 			if (!mRenderSystem->getCapabilities()->hasCapability(Ogre::RSC_FIXED_FUNCTION))
 			{
+				std::string shaderLanguage;
+				if (Ogre::HighLevelGpuProgramManager::getSingleton().isLanguageSupported("glsl"))
+					shaderLanguage = "glsl";
+				else if (Ogre::HighLevelGpuProgramManager::getSingleton().isLanguageSupported("glsles"))
+					shaderLanguage = "glsles";
+				else if (Ogre::HighLevelGpuProgramManager::getSingleton().isLanguageSupported("hlsl"))
+					shaderLanguage = "hlsl";
+				else
+					MYGUI_EXCEPT("No supported shader was found. Only glsl, glsles and hlsl are implemented so far.")
+
 				mVertexProgram = Ogre::HighLevelGpuProgramManager::getSingleton().createProgram(
-					"MyGUI_VP.glsles",
+					"MyGUI_VP." + shaderLanguage,
 					OgreDataManager::getInstance().getGroup(),
-					"glsles",
+					shaderLanguage,
 					Ogre::GPT_VERTEX_PROGRAM);
-				mVertexProgram->setSourceFile("MyGUI_VP.glsles");
+				mVertexProgram->setSourceFile("MyGUI_VP." + shaderLanguage);
+				if (shaderLanguage == "hlsl")
+				{
+					mVertexProgram->setParameter("target", "vs_4_0");
+					mVertexProgram->setParameter("entry_point", "main");
+				}
 				mVertexProgram->load();
 
 				mFragmentProgram = Ogre::HighLevelGpuProgramManager::getSingleton().createProgram(
-					"MyGUI_FP.glsles",
+					"MyGUI_FP." + shaderLanguage,
 					OgreDataManager::getInstance().getGroup(),
-					"glsles",
+					shaderLanguage,
 					Ogre::GPT_FRAGMENT_PROGRAM);
-				mFragmentProgram->setSourceFile("MyGUI_FP.glsles");
+				mFragmentProgram->setSourceFile("MyGUI_FP." + shaderLanguage);
+				if (shaderLanguage == "hlsl")
+				{
+					mFragmentProgram->setParameter("target", "ps_4_0");
+					mFragmentProgram->setParameter("entry_point", "main");
+				}
 				mFragmentProgram->load();
 			}
 		}
@@ -140,19 +160,10 @@ namespace MyGUI
 
 	void OgreRenderManager::setRenderWindow(Ogre::RenderWindow* _window)
 	{
-		// отписываемся
-		if (mWindow != nullptr)
-		{
-			Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
-			mWindow = nullptr;
-		}
-
 		mWindow = _window;
 
 		if (mWindow != nullptr)
 		{
-			Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
-
 			if (mWindow->getNumViewports() <= mActiveViewport &&
 				!mWindow->getViewport(mActiveViewport)->getOverlaysEnabled())
 			{
@@ -185,9 +196,6 @@ namespace MyGUI
 
 		if (mWindow != nullptr)
 		{
-			Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
-			Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
-
 			if (mWindow->getNumViewports() <= mActiveViewport)
 			{
 				MYGUI_PLATFORM_LOG(Error, "Invalid active viewport index selected. There is no viewport with given index.");
@@ -261,7 +269,6 @@ namespace MyGUI
 		delete _buffer;
 	}
 
-	// для оповещений об изменении окна рендера
 	void OgreRenderManager::windowResized(Ogre::RenderWindow* _window)
 	{
 		if (_window->getNumViewports() > mActiveViewport)
@@ -270,19 +277,12 @@ namespace MyGUI
 #if OGRE_VERSION >= MYGUI_DEFINE_VERSION(1, 7, 0) && OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
 			Ogre::OrientationMode orient = port->getOrientationMode();
 			if (orient == Ogre::OR_DEGREE_90 || orient == Ogre::OR_DEGREE_270)
-				mViewSize.set(port->getActualHeight(), port->getActualWidth());
+				setViewSize(port->getActualHeight(), port->getActualWidth());
 			else
-				mViewSize.set(port->getActualWidth(), port->getActualHeight());
+				setViewSize(port->getActualWidth(), port->getActualHeight());
 #else
-			mViewSize.set(port->getActualWidth(), port->getActualHeight());
+			setViewSize(port->getActualWidth(), port->getActualHeight());
 #endif
-
-			// обновить всех
-			mUpdate = true;
-
-			updateRenderInfo();
-
-			onResizeView(mViewSize);
 		}
 	}
 
@@ -290,7 +290,14 @@ namespace MyGUI
 	{
 		if (mRenderSystem != nullptr)
 		{
-			mInfo.maximumDepth = mRenderSystem->getMaximumDepthInputValue();
+			if (mRenderSystem->getName() == "Direct3D11 Rendering Subsystem") // special case, it's not working with the value returned by the rendersystem
+			{
+				mInfo.maximumDepth = 0.0f;
+			}
+			else
+			{
+				mInfo.maximumDepth = mRenderSystem->getMaximumDepthInputValue();
+			}
 			mInfo.hOffset = mRenderSystem->getHorizontalTexelOffset() / float(mViewSize.width);
 			mInfo.vOffset = mRenderSystem->getVerticalTexelOffset() / float(mViewSize.height);
 			mInfo.aspectCoef = float(mViewSize.height) / float(mViewSize.width);
@@ -350,6 +357,10 @@ namespace MyGUI
 		{
 			mRenderSystem->bindGpuProgram(mVertexProgram->_getBindingDelegate());
 			mRenderSystem->bindGpuProgram(mFragmentProgram->_getBindingDelegate());
+
+			Ogre::GpuProgramParametersSharedPtr params = mVertexProgram->getDefaultParameters();
+			params->setNamedConstant("YFlipScale", 1.0f);
+			mRenderSystem->bindGpuProgramParameters(Ogre::GPT_VERTEX_PROGRAM, params, Ogre::GPV_ALL);
 		}
 		mRenderSystem->setShadingType(Ogre::SO_GOURAUD);
 
@@ -485,6 +496,35 @@ namespace MyGUI
 	size_t OgreRenderManager::getBatchCount() const
 	{
 		return mCountBatch;
+	}
+
+	void OgreRenderManager::setViewSize(int _width, int _height)
+	{
+		mViewSize.set(_width, _height);
+		mUpdate = true;
+		updateRenderInfo();
+		onResizeView(mViewSize);
+	}
+
+	void OgreRenderManager::doRenderRtt(IVertexBuffer* _buffer, ITexture* _texture, size_t _count, bool flipY)
+	{
+		if (flipY && !mRenderSystem->getCapabilities()->hasCapability(Ogre::RSC_FIXED_FUNCTION))
+		{
+			Ogre::GpuProgramParametersSharedPtr params = mVertexProgram->getDefaultParameters();;
+			params->setNamedConstant("YFlipScale", -1.0f);
+			mRenderSystem->bindGpuProgramParameters(Ogre::GPT_VERTEX_PROGRAM,
+				params, Ogre::GPV_ALL);
+		}
+
+		doRender(_buffer, _texture, _count);
+
+		if (flipY && !mRenderSystem->getCapabilities()->hasCapability(Ogre::RSC_FIXED_FUNCTION))
+		{
+			Ogre::GpuProgramParametersSharedPtr params = mVertexProgram->getDefaultParameters();;
+			params->setNamedConstant("YFlipScale", 1.0f);
+			mRenderSystem->bindGpuProgramParameters(Ogre::GPT_VERTEX_PROGRAM,
+				params, Ogre::GPV_ALL);
+		}
 	}
 
 } // namespace MyGUI

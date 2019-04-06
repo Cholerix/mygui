@@ -15,7 +15,7 @@
 #include "MyGUI_ISubWidgetText.h"
 #include "MyGUI_ScrollBar.h"
 
-#include <ctype.h>
+#include <cctype>
 
 namespace MyGUI
 {
@@ -2171,21 +2171,6 @@ namespace MyGUI
 	bool EditBox::getTabPrinting() const
 	{
 		return mTabPrinting;
-	}
-
-	void EditBox::setPosition(int _left, int _top)
-	{
-		setPosition(IntPoint(_left, _top));
-	}
-
-	void EditBox::setSize(int _width, int _height)
-	{
-		setSize(IntSize(_width, _height));
-	}
-
-	void EditBox::setCoord(int _left, int _top, int _width, int _height)
-	{
-		setCoord(IntCoord(_left, _top, _width, _height));
 	}
 
 	bool EditBox::isVisibleVScroll() const

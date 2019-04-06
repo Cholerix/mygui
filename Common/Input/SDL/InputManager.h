@@ -20,7 +20,7 @@ namespace input
 	{
 	public:
 		InputManager();
-		virtual ~InputManager();
+		virtual ~InputManager() = default;
 
 		void createInput();
 		void destroyInput();
@@ -35,7 +35,7 @@ namespace input
 		virtual void injectKeyRelease(MyGUI::KeyCode _key){}
 
 		virtual void onFileDrop(const std::wstring& _filename) { }
-		virtual bool onWinodwClose(size_t _handle) { return true; }
+		virtual bool onWindowClose(size_t _handle) { return true; }
 
 		void setMousePosition(int _x, int _y);
 		void updateCursorPosition();
